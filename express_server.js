@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -18,7 +19,6 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-app.use(express.urlencoded({ extended: true }));
 
 // add router 
 
@@ -68,3 +68,26 @@ app.post("/urls", (req, res) => {
 });
 
 function generateRandomString() {}
+
+
+app.get("/u/:id", (req, res) => {
+  // const longURL = ...
+  res.redirect(longURL);
+});
+
+
+function generateRandomString(length) {
+  const alphanumericChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * alphanumericChars.length);
+    result += alphanumericChars.charAt(randomIndex);
+  }
+  
+  return result;
+}
+
+// To generate a 6-character random alphanumeric string:
+const randomString = generateRandomString(6);
+console.log(randomString);
