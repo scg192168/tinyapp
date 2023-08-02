@@ -71,7 +71,7 @@ function generateRandomString() {}
 
 
 app.get("/u/:id", (req, res) => {
-  // const longURL = ...
+  const longURL = "http://www.lighthouselabs.ca"
   res.redirect(longURL);
 });
 
