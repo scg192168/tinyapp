@@ -67,7 +67,14 @@ app.post("/urls", (req, res) => {
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
-function generateRandomString() {}
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id]
+  res.redirect("/urls")
+});
+
+function generateRandomString() {
+  
+}
 
 
 app.get("/u/:id", (req, res) => {
