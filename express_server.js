@@ -126,12 +126,21 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies["userId"];
-  const user = users[userId];
+  const username = req.cookies['username'];
+  const user = users[username];
 
   const templateVars = {
-    username: user ? user.userame : null, urlDatabase
+    username: user ? user.username+'hellos' : null, urlDatabase
     // ... any other vars
   };
   res.render("urls_index", templateVars);
+});
+
+// Define your /logout route
+app.post('/logout', (req, res) => {
+  // Clear the username cookie to log out the user
+  res.clearCookie('username');
+
+  // Redirect the user back to the /urls page
+  res.redirect('/urls');
 });
