@@ -1,5 +1,8 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
@@ -14,11 +17,6 @@ const urlDatabase = {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 
 // add router 
 
@@ -88,3 +86,25 @@ function generateRandomString(length) {
 // To generate a 6-character random alphanumeric string:
 const randomString = generateRandomString(6);
 console.log(randomString);
+
+
+// Serve the login form page 
+app.get('/login', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+// POST endpoint for handling login
+app.post('/login', (req, res) => {
+  const { username } = req.body;
+
+  // Set the cookie named "username" with the value from the request body
+  res.cookie('username', username);
+
+  // Redirect the browser back to the /urls page
+  res.redirect('/urls');
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
