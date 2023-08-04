@@ -1,6 +1,6 @@
 const express = require("express");
-const app = express();
 const cookieParser = require('cookie-parser');
+const app = express();
 app.use(cookieParser());
 
 const PORT = 8080; // default port 8080
@@ -30,11 +30,12 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/urls", (req, res) => {
-  console.log("urlDatabase", urlDatabase);
-    const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
+//app.get("/urls", (req, res) => {
+//   console.log("urlDatabase", urlDatabase);
+//     const templateVars = { urls: urlDatabase, userName };
+//     console.log({templateVars});
+//   res.render("urls_index", templateVars);
+// });
 
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: "Hello World!" };
@@ -107,4 +108,30 @@ app.post('/login', (req, res) => {
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+});
+
+// Sample user data (this should come from your authentication system)
+const users = {
+  "user123": {
+    id: "user123",
+    username: "john_doe",
+  },
+};
+
+app.get("/login", (req, res) => {
+  // Assume the user logs in and sets the cookie with their user ID
+  const userId = "user123";
+  res.cookie("userId", userId);
+  res.redirect("/urls");
+});
+
+app.get("/urls", (req, res) => {
+  const userId = req.cookies["userId"];
+  const user = users[userId];
+
+  const templateVars = {
+    username: user ? user.userame : null, urlDatabase
+    // ... any other vars
+  };
+  res.render("urls_index", templateVars);
 });

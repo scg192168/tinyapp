@@ -29,10 +29,10 @@
           </tr>
         </thead>
         <tbody>
-          <% for (let id in urls) { %>
+          <% for (let id in urlDatabase) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= urls[id] %></td>
+              <td><%= urlDatabase[id] %></td>
               <td><form 
                 method="GET"
                 action="/urls/<%= id %>">
