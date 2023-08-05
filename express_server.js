@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const app = express();
+app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 
 const PORT = 8080; // default port 8080
@@ -120,8 +121,8 @@ const users = {
 
 app.get("/login", (req, res) => {
   // Assume the user logs in and sets the cookie with their user ID
-  const userId = "user123";
-  res.cookie("userId", userId);
+  const username = "user123";
+  res.cookie("username", username);
   res.redirect("/urls");
 });
 
@@ -144,3 +145,54 @@ app.post('/logout', (req, res) => {
   // Redirect the user back to the /urls page
   res.redirect('/urls');
 });
+
+// GET endpoint for /register
+app.get('/register', (req, res) => {
+  res.render('registration');
+});
+
+// Global user object (you may have this in your existing code)
+let user = {};
+
+// Function to generate random user ID (you may have this in your existing code)
+function generateRandomId() {
+  // Implementation to generate random ID
+}
+
+app.post('/register', (req, res) => {
+  const { email, password } = req.body;
+
+  // Check if email or password is missing
+  if (!email || !password) {
+    return res.status(400).send('Email and password are required.');
+  }
+
+  // Check if the email already exists in the users object
+  const existingUser = Object.values(users).find(user => user.email === email);
+  if (existingUser) {
+    return res.status(400).send('Email already exists.');
+  }
+
+  // Generate a random user ID
+  const username = generateRandomId();
+
+  // Create the new user object
+  const newUser = {
+    id: username,
+    email: email,
+    password: password // Remember, this is plain text for now (will be fixed later)
+  };
+
+  // Add the new user to the global users object
+  users[username] = newUser;
+})
+ 
+  app.get('/profile', (req, res) => {
+    const username = req.cookies.username;
+    // Fetch the specific user object using the user_id cookie value
+    const user = users[req.cookies.user_id];
+  
+    // Render the profile template and pass the entire user object to the template
+    res.render('profile', { user });
+  });
+  
