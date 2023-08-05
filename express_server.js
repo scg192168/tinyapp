@@ -14,6 +14,10 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+const getUserByEmail = (email) => {
+const existingUser = Object.values(users).find(user => user.email === email);
+return existingUser;
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -61,11 +65,6 @@ app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id]
   res.redirect("/urls")
 });
-
-function generateRandomString() {
-  
-}
-
 
 app.get("/u/:id", (req, res) => {
   const longURL = "http://www.lighthouselabs.ca"
@@ -148,45 +147,45 @@ app.post('/logout', (req, res) => {
 
 // GET endpoint for /register
 app.get('/register', (req, res) => {
-  res.render('registration');
+  const username = req.cookies['username'];
+  const templateVars = {username}
+  res.render('registration', templateVars);
 });
 
 // Global user object (you may have this in your existing code)
 let user = {};
-
-// Function to generate random user ID (you may have this in your existing code)
-function generateRandomId() {
-  // Implementation to generate random ID
-}
 
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
 
   // Check if email or password is missing
   if (!email || !password) {
-    return res.status(400).send('Email and password are required.');
+    return res.status(400).json({ error: 'Email and password are required.' });
   }
+// Check if the email is already registered
 
-  // Check if the email already exists in the users object
-  const existingUser = Object.values(users).find(user => user.email === email);
-  if (existingUser) {
-    return res.status(400).send('Email already exists.');
-  }
+if (getUserByEmail(email)) {
+  return res.status(400).json({ error: 'Email is already registered.' });
+}
 
-  // Generate a random user ID
-  const username = generateRandomId();
+// Generate a random user ID
+  const userID = generateRandomString(6);
 
-  // Create the new user object
+// Create the new user object
   const newUser = {
-    id: username,
+    id: userID,
     email: email,
     password: password // Remember, this is plain text for now (will be fixed later)
   };
+  users[userID] = newUser;
 
+  // Return a success response
+  res.status(200).json({ message: 'Registration successful.' });
+});
   // Add the new user to the global users object
-  users[username] = newUser;
-})
- 
+  //users[username] = newUser;
+//});
+
   app.get('/profile', (req, res) => {
     const username = req.cookies.username;
     // Fetch the specific user object using the user_id cookie value
