@@ -1,5 +1,6 @@
 <header>
   <nav class="navbar navbar-expand-md navbar-dark bg-success" >
+
       <a class="navbar-brand" href="/urls">TinyApp</a>
       <button
         class="navbar-toggler"
@@ -12,29 +13,24 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="collapse navbar-collapse d-flex justify-content-between" id="navbarNavAltMarkup">
         <div class="navbar-nav">
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a> 
-
+         </div>
+      <div class="d-flex">
+        <% if (user) { %>
+          <!-- Display the username and logout form -->
+          <p>Welcome, <%= user.email %>!</p>
+          <form action="/logout" method="post">
+            <button type="submit">Log Out</button>
+          </form>
+        <% } else { %>
+          <a class="nav-item nav-link text-white" href="/login">Login</a>
+          <a class="nav-item nav-link text-white" href="/register">Register</a> 
+        <% } %>
       </div>
-      </div>
-      <!-- Assuming this is the header part of your EJS template -->
-      <% if (username) { %>
-        <!-- Display the username and logout form -->
-        <p>Welcome, <%= username %>!</p>
-        <form action="/logout" method="post">
-          <button type="submit">Log Out</button>
-        </form>
-      <% } else { %>
-        <!-- Display the login form -->
-        <form action="/login" method="post">
-          <input class="form-control" type="text" name="username" placeholder="enter username">
-          <!-- Your login form fields (e.g., username and password) -->
-          <!-- ... -->
-          <button type="Submit">Log In</button>
-        </form>
-      <% } %>
+    </div> 
       <div>
     </div class="navbar-nav ml-auto"></div>
       </div>
