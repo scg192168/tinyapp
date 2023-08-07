@@ -48,32 +48,50 @@ app.get("/urls", (req, res) => {
 // add route
 app.get("/urls/new", (req, res) => {
   const userID = req.cookies["user_id"];
+  if (!userID) {
+    res.redirect("/login");
+  } else {
   const user = users[userID];
   const templateVars = { user };
   res.render("urls_new", templateVars);
+}
 });
 
 // add route
 app.get("/urls/:id", (req, res) => {
   const userID = req.cookies["user_id"];
   const user = users[userID];
-  const templateVars = {
-    shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
-    user
-  };
-  res.render("urls_show", templateVars);
+  const longURL = urlDatabase[req.params.id]?.longURL;
+  if (!longURL) {
+    return res.status(404).send("<p>URL not found</p>");
+  } else {
+    const templateVars = {
+      shortURL: req.params.id,
+      longURL: urlDatabase[req.params.id].longURL,
+      user
+    };
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL]?.longURL;
+  if (!longURL) {
+    return res.status(404).send("<p>URL not found</p>");
+  } else {
   res.redirect(longURL);
+  }
 });
 
 // POST endpoint for handling  urls
 app.post("/urls", (req, res) => {
+  const userID = req.cookies["user_id"];
+  if (!userID) {
+    return res.status(401).send("<p>User much login to create new URLs<p>")
+  }
   const id = generateRandomString(6);
-  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"] }
+  urlDatabase[id] = { longURL: req.body.longURL, userID: userID }
   res.redirect("/urls")
 });
 
@@ -92,9 +110,13 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // GET endpoint for /register
 app.get("/register", (req, res) => {
-  const userID = req.cookies["username"];
+  const userID = req.cookies["user_id"];
+  if (userID) {
+    res.redirect("/urls");
+  } else {
   const templateVars = { user: users[userID] };
   res.render("registration", templateVars);
+}
 });
 
 // POST endpoint for register
@@ -126,9 +148,13 @@ app.post("/register", (req, res) => {
 
 // GET /login endpoint
 app.get("/login", (req, res) => {
-  const userID = req.cookies["username"];
+  const userID = req.cookies["user_id"];
+  if (userID) {
+    res.redirect("/urls");
+  } else {
   const templateVars = { user: users[userID] };
   res.render("login", templateVars);
+  }
 });
 
 // POST endpoint for handling login
