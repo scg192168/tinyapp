@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser"); //require cookie-session
+const bcrypt = require("bcryptjs");
 const app = express();
 const { users, urlDatabase } = require("./database");
 
@@ -30,10 +31,10 @@ const getUserByEmail = (email) => {
 };
 // create a function to fetch users URLs
 const urlsForUser = (userID) => {
-  let userURLs = {}
+  let userURLs = {};
   for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === userID){
-    userURLs[shortURL] = urlDatabase[shortURL]
+    if (urlDatabase[shortURL].userID === userID) {
+      userURLs[shortURL] = urlDatabase[shortURL];
     }
   }
   return userURLs;
@@ -49,12 +50,12 @@ app.get("/urls", (req, res) => {
   const user = users[userID];
   if (!user) {
     res.send("User is not logged in");
-    return 
+    return;
   }
-  let userURLs = urlsForUser(userID)
+  let userURLs = urlsForUser(userID);
   const templateVars = {
     user,
-    urlDatabase:userURLs,
+    urlDatabase: userURLs,
   };
   res.render("urls_index", templateVars);
 });
@@ -65,10 +66,10 @@ app.get("/urls/new", (req, res) => {
   if (!userID) {
     res.redirect("/login");
   } else {
-  const user = users[userID];
-  const templateVars = { user };
-  res.render("urls_new", templateVars);
-}
+    const user = users[userID];
+    const templateVars = { user };
+    res.render("urls_new", templateVars);
+  }
 });
 
 // add route
@@ -77,22 +78,22 @@ app.get("/urls/:id", (req, res) => {
   const user = users[userID];
   if (!user) {
     res.send("User is not logged in");
-    return 
+    return;
   }
-  const shortURL = req.params.id
+  const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]?.longURL;
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
-  } 
+  }
   if (urlDatabase[shortURL].userID !== userID) {
     return res.status(403).send("<p>Access forbidden</p>");
   }
-    const templateVars = {
-      shortURL,
-      longURL,
-      user
-    };
-    res.render("urls_show", templateVars);
+  const templateVars = {
+    shortURL,
+    longURL,
+    user,
+  };
+  res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
@@ -101,7 +102,7 @@ app.get("/u/:id", (req, res) => {
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
   } else {
-  res.redirect(longURL);
+    res.redirect(longURL);
   }
 });
 
@@ -109,11 +110,11 @@ app.get("/u/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
   if (!userID) {
-    return res.status(401).send("<p>User much login to create new URLs<p>")
+    return res.status(401).send("<p>User much login to create new URLs<p>");
   }
   const id = generateRandomString(6);
-  urlDatabase[id] = { longURL: req.body.longURL, userID: userID }
-  res.redirect("/urls")
+  urlDatabase[id] = { longURL: req.body.longURL, userID: userID };
+  res.redirect("/urls");
 });
 
 // POST endpoint for handling updating urls
@@ -123,11 +124,11 @@ app.post("/urls/:id/update", (req, res) => {
   if (!user) {
     return res.send("User is not logged in");
   }
-  const shortURL = req.params.id
+  const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]?.longURL;
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
-  } 
+  }
   if (urlDatabase[shortURL].userID !== userID) {
     return res.status(403).send("<p>Access forbidden</p>");
   }
@@ -142,11 +143,11 @@ app.post("/urls/:id/delete", (req, res) => {
   if (!user) {
     return res.send("User is not logged in");
   }
-  const shortURL = req.params.id
+  const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]?.longURL;
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
-  } 
+  }
   if (urlDatabase[shortURL].userID !== userID) {
     return res.status(403).send("<p>Access forbidden</p>");
   }
@@ -161,15 +162,15 @@ app.get("/register", (req, res) => {
   if (user) {
     res.redirect("/urls");
   } else {
-  const templateVars = { user: users[userID] };
-  res.render("registration", templateVars);
-}
+    const templateVars = { user: users[userID] };
+    res.render("registration", templateVars);
+  }
 });
 
 // POST endpoint for register
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
- 
+
   // Check if email or password is missing
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required." });
@@ -179,15 +180,17 @@ app.post("/register", (req, res) => {
   if (user) {
     return res.status(403).json({ error: "User already exists" });
   }
+  // Hash the password with bcrypt
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-   // Generate a random user ID
-   const userID = generateRandomString(6);
-   const newUser = {
-     id: userID,
-     email: email,
-     password: password,
-   };
-   users[userID] = newUser;
+  // Generate a random user ID
+  const userID = generateRandomString(6);
+  const newUser = {
+    id: userID,
+    email: email,
+    password: hashedPassword,
+  };
+  users[userID] = newUser;
 
   res.cookie("user_id", userID);
   res.redirect("/urls");
@@ -200,26 +203,25 @@ app.get("/login", (req, res) => {
   if (user) {
     res.redirect("/urls");
   } else {
-  const templateVars = { user: users[userID] };
-  res.render("login", templateVars);
+    const templateVars = { user: users[userID] };
+    res.render("login", templateVars);
   }
 });
 
 // POST endpoint for handling login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  
+
   // Check if email or password is missing
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
   const user = getUserByEmail(email);
-  if (!user) {
-    return res.status(403).json({ error: "User not found" });
-  }
-
-  if (user.password !== password) {
+  console.log(password);
+  console.log(user.password);
+  console.log(user);
+  if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(403).json({ error: "User not found" });
   }
 
