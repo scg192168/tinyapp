@@ -16,11 +16,11 @@ const users = {
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "userRandomID",
+    userID: "aJ48lW",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "user2RandomID",
+    userID: "aJ48lW",
   },
 };
 

@@ -28,7 +28,16 @@ const getUserByEmail = (email) => {
   );
   return existingUser;
 };
-
+// create a function to fetch users URLs
+const urlsForUser = (userID) => {
+  let userURLs = {}
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === userID){
+    userURLs[shortURL] = urlDatabase[shortURL]
+    }
+  }
+  return userURLs;
+};
 // add route
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -38,9 +47,14 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
   const user = users[userID];
+  if (!user) {
+    res.send("User is not logged in");
+    return 
+  }
+  let userURLs = urlsForUser(userID)
   const templateVars = {
     user,
-    urlDatabase,
+    urlDatabase:userURLs,
   };
   res.render("urls_index", templateVars);
 });
@@ -61,17 +75,24 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userID = req.cookies["user_id"];
   const user = users[userID];
-  const longURL = urlDatabase[req.params.id]?.longURL;
+  if (!user) {
+    res.send("User is not logged in");
+    return 
+  }
+  const shortURL = req.params.id
+  const longURL = urlDatabase[shortURL]?.longURL;
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
-  } else {
+  } 
+  if (urlDatabase[shortURL].userID !== userID) {
+    return res.status(403).send("<p>Access forbidden</p>");
+  }
     const templateVars = {
-      shortURL: req.params.id,
-      longURL: urlDatabase[req.params.id].longURL,
+      shortURL,
+      longURL,
       user
     };
     res.render("urls_show", templateVars);
-  }
 });
 
 app.get("/u/:id", (req, res) => {
@@ -95,15 +116,40 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls")
 });
 
-
 // POST endpoint for handling updating urls
 app.post("/urls/:id/update", (req, res) => {
+  const userID = req.cookies["user_id"];
+  const user = users[userID];
+  if (!user) {
+    return res.send("User is not logged in");
+  }
+  const shortURL = req.params.id
+  const longURL = urlDatabase[shortURL]?.longURL;
+  if (!longURL) {
+    return res.status(404).send("<p>URL not found</p>");
+  } 
+  if (urlDatabase[shortURL].userID !== userID) {
+    return res.status(403).send("<p>Access forbidden</p>");
+  }
   urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
 // POST endpoint for handling deleting urls
 app.post("/urls/:id/delete", (req, res) => {
+  const userID = req.cookies["user_id"];
+  const user = users[userID];
+  if (!user) {
+    return res.send("User is not logged in");
+  }
+  const shortURL = req.params.id
+  const longURL = urlDatabase[shortURL]?.longURL;
+  if (!longURL) {
+    return res.status(404).send("<p>URL not found</p>");
+  } 
+  if (urlDatabase[shortURL].userID !== userID) {
+    return res.status(403).send("<p>Access forbidden</p>");
+  }
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
@@ -111,7 +157,8 @@ app.post("/urls/:id/delete", (req, res) => {
 // GET endpoint for /register
 app.get("/register", (req, res) => {
   const userID = req.cookies["user_id"];
-  if (userID) {
+  const user = users[userID];
+  if (user) {
     res.redirect("/urls");
   } else {
   const templateVars = { user: users[userID] };
@@ -149,7 +196,8 @@ app.post("/register", (req, res) => {
 // GET /login endpoint
 app.get("/login", (req, res) => {
   const userID = req.cookies["user_id"];
-  if (userID) {
+  const user = users[userID];
+  if (user) {
     res.redirect("/urls");
   } else {
   const templateVars = { user: users[userID] };
