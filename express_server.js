@@ -1,44 +1,20 @@
 const express = require("express");
-const cookieParser = require("cookie-parser"); //require cookie-session
+const cookieSession = require("cookie-session"); //require cookie-session
 const bcrypt = require("bcryptjs");
 const app = express();
 const { users, urlDatabase } = require("./database");
-
+const { getUserByEmail, generateRandomString, urlsForUser } = require("./helper");
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1", "key2"],
+  })
+);
 
-// To generate a 6-character random alphanumeric string:
-function generateRandomString(length) {
-  const alphanumericChars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * alphanumericChars.length);
-    result += alphanumericChars.charAt(randomIndex);
-  }
-  return result;
-}
-
-// function implementing getUserByEmail
-const getUserByEmail = (email) => {
-  const existingUser = Object.values(users).find(
-    (user) => user.email === email
-  );
-  return existingUser;
-};
-// create a function to fetch users URLs
-const urlsForUser = (userID) => {
-  let userURLs = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === userID) {
-      userURLs[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return userURLs;
-};
 // add route
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -46,13 +22,13 @@ app.get("/", (req, res) => {
 
 // add command if/else loop
 app.get("/urls", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (!user) {
     res.send("User is not logged in");
     return;
   }
-  let userURLs = urlsForUser(userID);
+  let userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
     user,
     urlDatabase: userURLs,
@@ -62,7 +38,7 @@ app.get("/urls", (req, res) => {
 
 // add route
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   if (!userID) {
     res.redirect("/login");
   } else {
@@ -74,7 +50,7 @@ app.get("/urls/new", (req, res) => {
 
 // add route
 app.get("/urls/:id", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (!user) {
     res.send("User is not logged in");
@@ -108,7 +84,7 @@ app.get("/u/:id", (req, res) => {
 
 // POST endpoint for handling  urls
 app.post("/urls", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   if (!userID) {
     return res.status(401).send("<p>User much login to create new URLs<p>");
   }
@@ -119,7 +95,7 @@ app.post("/urls", (req, res) => {
 
 // POST endpoint for handling updating urls
 app.post("/urls/:id/update", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (!user) {
     return res.send("User is not logged in");
@@ -138,7 +114,7 @@ app.post("/urls/:id/update", (req, res) => {
 
 // POST endpoint for handling deleting urls
 app.post("/urls/:id/delete", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (!user) {
     return res.send("User is not logged in");
@@ -157,7 +133,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // GET endpoint for /register
 app.get("/register", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (user) {
     res.redirect("/urls");
@@ -192,13 +168,13 @@ app.post("/register", (req, res) => {
   };
   users[userID] = newUser;
 
-  res.cookie("user_id", userID);
+  req.session.user_id = userID;
   res.redirect("/urls");
 });
 
 // GET /login endpoint
 app.get("/login", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session["user_id"];
   const user = users[userID];
   if (user) {
     res.redirect("/urls");
@@ -226,7 +202,7 @@ app.post("/login", (req, res) => {
   }
 
   // Set the cookie named "user.id" with the value from the request body
-  res.cookie("user_id", user.id);
+  req.session.user_id = user.id;
 
   // Redirect the browser back to the /urls page
   res.redirect("/urls");
@@ -235,7 +211,7 @@ app.post("/login", (req, res) => {
 // Define /logout route
 app.post("/logout", (req, res) => {
   // Clear the username cookie to log out the user
-  res.clearCookie("user_id");
+  req.session.user_id = null;
   // Redirect the user back to the /urls page
   res.redirect("/login");
 });
