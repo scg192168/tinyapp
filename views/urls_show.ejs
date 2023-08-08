@@ -13,6 +13,7 @@
 
   <body>
     <%- include('partials/_header') %>
+
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -23,19 +24,24 @@
       </div>
       <div class="card-footer text-muted">
         <h5>Edit</h5>
-        <form class="form-inline" method="POST" action="/urls/<%= shortURL %>/update">
-        <div class="row mx-auto">
-          <h6>New URL:</h6>
-          <input                
-                  type="text"
-                  name="longURL"
-                  placeholder="<%= longURL.longURL %>"
-                ><button type="submit" class="btn btn-primary">Update</button>
-        </div>
-              </form>
+        <form
+          class="form-inline"
+          method="POST"
+          action="/urls/<%= shortURL %>/update"
+        >
+          <div class="row mx-auto">
+            <h6>New URL:</h6>
+            <input
+              type="text"
+              name="longURL"
+              placeholder="<%= longURL.longURL %>"
+            />
+            <button type="submit" class="btn btn-primary">Update</button>
+          </div>
+        </form>
       </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
