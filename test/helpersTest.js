@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 
-const { getUserByEmail } = require('../helpers.js');
+const { getUserByEmail } = require('../helper.js');
 
 const testUsers = {
   "userRandomID": {
@@ -20,6 +20,6 @@ describe('getUserByEmail', function() {
     const user = getUserByEmail("user@example.com", testUsers)
     const expectedUserID = "userRandomID";
     // Write your assert statement here
-    assert.isUndefined(user);
+    assert.equal(user.id, expectedUserID);
   });
 });

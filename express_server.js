@@ -17,7 +17,12 @@ app.use(
 
 // add route
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const userID = req.session["user_id"];
+  if (userID) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // add command if/else loop
@@ -75,6 +80,10 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]?.longURL;
+  const userID = req.session["user_id"];
+  if (!userID) {
+    return res.status(401).send("<p>User must login to create new URLs<p>");
+  }
   if (!longURL) {
     return res.status(404).send("<p>URL not found</p>");
   } else {
@@ -86,7 +95,7 @@ app.get("/u/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   const userID = req.session["user_id"];
   if (!userID) {
-    return res.status(401).send("<p>User much login to create new URLs<p>");
+    return res.status(401).send("<p>User must login to create new URLs<p>");
   }
   const id = generateRandomString(6);
   urlDatabase[id] = { longURL: req.body.longURL, userID: userID };
